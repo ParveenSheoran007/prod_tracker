@@ -1,100 +1,111 @@
 import 'package:flutter/material.dart';
 import 'package:prod_tracker/model/product_model.dart';
-import 'package:prod_tracker/service/product_service.dart';
+import 'package:prod_tracker/provider/product_provider.dart';
+import 'package:prod_tracker/ui/edit_product_screen.dart';
+import 'package:prod_tracker/ui/product_detail_sreen.dart';
+import 'package:provider/provider.dart';
 
-
-class ProductsScreen extends StatefulWidget {
-  @override
-  _ProductsScreenState createState() => _ProductsScreenState();
-}
-
-class _ProductsScreenState extends State<ProductsScreen> {
-  final ProductService _productService = ProductService();
-  List<ProductModel> products = [];
-
-  @override
-  void initState() {
-    super.initState();
-    fetchProducts();
-  }
-
-  Future<void> fetchProducts() async {
-    try {
-      List<ProductModel> fetchedProducts = await _productService.fetchProducts();
-      setState(() {
-        products = fetchedProducts;
-      });
-    } catch (e) {
-      print('Error fetching products: $e');
-    }
-  }
-
-  Future<void> addProduct(ProductModel product) async {
-    try {
-      await _productService.addProduct(product);
-      await fetchProducts();
-    } catch (e) {
-      print('Error adding product: $e');
-      // Handle error as needed
-    }
-  }
-
-  Future<void> deleteProduct(String productId) async {
-    try {
-      await _productService.deleteProduct(productId);
-      await fetchProducts(); // Refresh products list after deletion
-    } catch (e) {
-      print('Error deleting product: $e');
-      // Handle error as needed
-    }
-  }
+class ProductsScreen extends StatelessWidget {
+  const ProductsScreen({Key? key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Products'),
+    return ChangeNotifierProvider(
+      create: (context) => ProductProvider()..fetchProducts(),
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('Products'),
+        ),
+        body: Consumer<ProductProvider>(
+          builder: (context, provider, child) {
+            if (provider.isLoading) {
+              return Center(child: CircularProgressIndicator());
+            }
+
+            if (provider.products.isEmpty) {
+              return Center(child: Text('No products available.'));
+            }
+
+            return ListView.builder(
+              itemCount: provider.products.length,
+              itemBuilder: (context, index) {
+                ProductModel product = provider.products[index];
+                return ListTile(
+                  title: Text(product.name),
+                  subtitle: Text(product.desc),
+                  onTap: () => _navigateToProductDetail(context, product),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.edit),
+                        onPressed: () =>
+                            _navigateToEditScreen(context, product),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.delete),
+                        onPressed: () =>
+                            _deleteProduct(context, provider, product),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () => _navigateToEditScreen(context, null),
+          // Null indicates new product
+          child: Icon(Icons.add),
+        ),
       ),
-      body: ListView.builder(
-        itemCount: products.length,
-        itemBuilder: (context, index) {
-          ProductModel product = products[index];
-          return ListTile(
-            title: Text(product.name),
-            subtitle: Text(product.description),
-            // Example: Add edit and delete functionalities
-            // Example: onLongPress to delete
-            onLongPress: () {
-              deleteProduct(product.id);
-            },
-          );
-        },
+    );
+  }
+
+  void _navigateToEditScreen(BuildContext context, ProductModel? product) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditProductScreen(product: product),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Fetch initial data for new product from API
-          showDialog(
-            context: context,
-            builder: (context) => FutureBuilder<ProductModel>(
-              future: _productService.fetchNewProductData(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                } else {
-                  // Example: Save product and refresh list
-                  ProductModel newProduct = snapshot.data!;
-                  addProduct(newProduct);
-                  Navigator.pop(context); // Close dialog
-                  return SizedBox.shrink();
-                }
+    );
+  }
+
+  void _navigateToProductDetail(BuildContext context, ProductModel product) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProductDetailScreen(product: product),
+      ),
+    );
+  }
+
+  void _deleteProduct(
+      BuildContext context, ProductProvider provider, ProductModel product) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Delete'),
+          content: Text('Are you sure you want to delete ${product.name}?'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
               },
             ),
-          );
-        },
-        child: Icon(Icons.add),
-      ),
+            TextButton(
+              child: Text('Delete'),
+              onPressed: () async {
+                await provider.deleteProduct(product.id);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }

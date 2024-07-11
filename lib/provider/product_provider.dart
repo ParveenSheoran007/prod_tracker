@@ -1,40 +1,76 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:prod_tracker/model/add_product_model.dart';
 import 'package:prod_tracker/model/product_model.dart';
+import 'package:prod_tracker/model/update_product_model.dart';
 import 'package:prod_tracker/service/product_service.dart';
 
-class ProductProvider extends ChangeNotifier {
-  final ProductService _productService = ProductService();
-  List<ProductModel> products = [];
+class ProductProvider with ChangeNotifier {
+  List<ProductModel> _products = [];
+  bool _isLoading = false;
+
+  List<ProductModel> get products => _products;
+
+  bool get isLoading => _isLoading;
 
   Future<void> fetchProducts() async {
     try {
-      List<ProductModel> fetchedProducts = await _productService.fetchProducts();
-      products = fetchedProducts;
-      notifyListeners(); // Notify listeners when data changes
+      _isLoading = true;
+      notifyListeners();
+
+      _products = await ProductService.fetchProducts();
+
+      _isLoading = false;
+      notifyListeners();
     } catch (e) {
-      print('Error fetching products: $e');
+      _isLoading = false;
+      notifyListeners();
+      throw e;
     }
   }
 
   Future<void> addProduct(ProductModel product) async {
     try {
-      await _productService.addProduct(product);
-      await fetchProducts(); // Refresh products list after adding
+      _isLoading = true;
+      notifyListeners();
+
+      await ProductService.addProduct(product as AddProductModel);
+
+      await fetchProducts();
     } catch (e) {
-      print('Error adding product: $e');
-      // Handle error as needed
+      _isLoading = false;
+      notifyListeners();
+      throw e;
+    }
+  }
+
+  Future<void> updateProduct(String productId, ProductModel product) async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      await ProductService.updateProduct(
+          productId, product as UpdateProductModel);
+
+      await fetchProducts();
+    } catch (e) {
+      _isLoading = false;
+      notifyListeners();
+      throw e;
     }
   }
 
   Future<void> deleteProduct(String productId) async {
     try {
-      await _productService.deleteProduct(productId);
-      await fetchProducts(); // Refresh products list after deletion
+      _isLoading = true;
+      notifyListeners();
+
+      await ProductService.deleteProduct(productId);
+
+      await fetchProducts();
     } catch (e) {
-      print('Error deleting product: $e');
-      // Handle error as needed
+      _isLoading = false;
+      notifyListeners();
+      throw e;
     }
   }
-
-// Add more methods for updating and editing products if needed
 }

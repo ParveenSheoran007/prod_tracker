@@ -5,7 +5,7 @@ import 'package:prod_tracker/auth/model/user_model.dart';
 class UserService {
   final String baseUrl = 'http://localhost:3000/api';
 
-  Future<bool> register(UserModel user) async {
+  Future<bool> register(UserModel user, String email, String password) async {
     final url = Uri.parse('$baseUrl/register');
     final response = await http.post(
       url,

@@ -1,35 +1,30 @@
 class ProductModel {
-  final String id;
-  final String name;
-  final String description;
-  final double price;
-  final String category;
+  String id;
+  String name;
+  String desc;
+  int price;
+  String category;
 
   ProductModel({
     required this.id,
     required this.name,
-    required this.description,
+    required this.desc,
     required this.price,
     required this.category,
   });
 
-  factory ProductModel.fromJson(Map<String, dynamic> json) {
+  factory ProductModel.fromMap(Map<String, dynamic> map) {
     return ProductModel(
-      id: json['id'],
-      name: json['name'],
-      description: json['description'],
-      price: json['price'].toDouble(),
-      category: json['category'],
+      id: map['_id'],
+      name: map['name'],
+      desc: map['description'],
+      price: map['price'],
+      category: map['category'],
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'description': description,
-      'price': price,
-      'category': category,
-    };
+  // Setter for description
+  set description(String value) {
+    desc = value;
   }
 }

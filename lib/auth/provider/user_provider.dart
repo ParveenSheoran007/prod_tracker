@@ -4,26 +4,47 @@ import 'package:prod_tracker/auth/service/user_service.dart';
 
 class UserProvider extends ChangeNotifier {
   final UserService _userService = UserService();
+  UserModel? _user;
+  bool _isLoggedIn = false;
   bool _isLoading = false;
 
+  UserModel? get user => _user;
+  bool get isLoggedIn => _isLoggedIn;
   bool get isLoading => _isLoading;
 
-  Future<bool> register(UserModel user) async {
+  Future<void> register(UserModel user, String email, String password) async {
     _setLoading(true);
-    final success = await _userService.register(user);
+    bool success = await _userService.register(user, email, password);
+    if (success) {
+      _user = user;
+      _isLoggedIn = true;
+      notifyListeners();
+    } else {
+      throw Exception('Registration failed');
+    }
     _setLoading(false);
-    return success;
   }
 
   Future<bool> login(UserModel user) async {
     _setLoading(true);
-    final success = await _userService.login(user);
+    bool success = await _userService.login(user);
+    if (success) {
+      _user = user;
+      _isLoggedIn = true;
+      notifyListeners();
+    }
     _setLoading(false);
     return success;
   }
 
-  void _setLoading(bool value) {
-    _isLoading = value;
+  void logout() {
+    _user = null;
+    _isLoggedIn = false;
+    notifyListeners();
+  }
+
+  void _setLoading(bool loading) {
+    _isLoading = loading;
     notifyListeners();
   }
 }

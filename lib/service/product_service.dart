@@ -1,53 +1,79 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:prod_tracker/api_end_point.dart';
 import 'package:prod_tracker/model/product_model.dart';
+import 'package:prod_tracker/model/add_product_model.dart';
+import 'package:prod_tracker/model/update_product_model.dart';
+import 'package:prod_tracker/model/delete_product_model.dart';
 
 class ProductService {
-  final String baseUrl = 'http://localhost:3000/api/products';
+  static Future<List<ProductModel>> fetchProducts() async {
+    try {
+      Uri uri = Uri.parse(ApiEndpoints.products);
+      http.Response response = await http.get(uri);
 
-  Future<List<ProductModel>> fetchProducts() async {
-    final response = await http.get(Uri.parse(baseUrl));
-
-    if (response.statusCode == 200) {
-      Iterable responseData = jsonDecode(response.body);
-      List<ProductModel> products = responseData.map((json) => ProductModel.fromJson(json)).toList();
-      return products;
-    } else {
-      throw Exception('Failed to fetch products');
+      if (response.statusCode == 200) {
+        List<dynamic> data = jsonDecode(response.body);
+        List<ProductModel> productList = data
+            .map((item) => ProductModel.fromMap(item))
+            .toList();
+        return productList;
+      } else {
+        throw Exception('Failed to load products: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching products: $e');
     }
   }
 
-  Future<ProductModel> addProduct(ProductModel product) async {
-    final response = await http.post(
-      Uri.parse(baseUrl),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(product.toJson()),
-    );
+  static Future<String> addProduct(AddProductModel addProductRequest) async {
+    try {
+      Uri uri = Uri.parse(ApiEndpoints.products);
+      String mapStr = jsonEncode(addProductRequest.toMap());
+      http.Response response = await http.post(uri, body: mapStr);
 
-    if (response.statusCode == 201) {
-      return ProductModel.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception('Failed to add product');
+      if (response.statusCode == 201) {
+        return 'Product added successfully';
+      } else {
+        throw Exception('Failed to add product: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error adding product: $e');
     }
   }
 
-  Future<void> deleteProduct(String id) async {
-    final response = await http.delete(Uri.parse('$baseUrl/$id'));
+  static Future<String> updateProduct(String productId, UpdateProductModel updateProductRequest) async {
+    try {
+      Uri uri = Uri.parse('${ApiEndpoints.products}/$productId');
+      String mapStr = jsonEncode(updateProductRequest.toMap());
+      http.Response response = await http.put(uri, body: mapStr);
 
-    if (response.statusCode != 200) {
-      throw Exception('Failed to delete product');
+      if (response.statusCode == 200) {
+        return 'Product updated successfully';
+      } else {
+        throw Exception('Failed to update product: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error updating product: $e');
     }
   }
 
-  Future<void> updateProduct(String id, ProductModel updatedProduct) async {
-    final response = await http.put(
-      Uri.parse('$baseUrl/$id'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(updatedProduct.toJson()),
-    );
+  static Future<String> deleteProduct(String productId) async {
+    try {
+      Uri uri = Uri.parse('${ApiEndpoints.products}/$productId');
+      http.Response response = await http.delete(uri);
 
-    if (response.statusCode != 200) {
-      throw Exception('Failed to update product');
+      if (response.statusCode == 200) {
+        // Assuming your server returns a message or confirmation upon successful deletion
+        String body = response.body;
+        var json = jsonDecode(body);
+        DeleteProductModel deleteProductResponse = DeleteProductModel.fromJson(json);
+        return 'Product deleted successfully';
+      } else {
+        throw Exception('Failed to delete product: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error deleting product: $e');
     }
   }
 }

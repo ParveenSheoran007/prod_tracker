@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:prod_tracker/model/add_product_model.dart';
 import 'package:prod_tracker/model/product_model.dart';
 import 'package:prod_tracker/provider/product_provider.dart';
 import 'package:provider/provider.dart';
@@ -17,8 +18,8 @@ class AddProductScreen extends StatelessWidget {
             productProvider.addProduct(ProductModel(
               id: 'new_id',
               name: 'New Product',
-              description: 'Description of new product',
-              price: 0.0,
+              desc: 'Description of new product',
+              price: 00,
               category: 'Uncategorized',
             ));
             Navigator.pop(context);

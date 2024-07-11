@@ -28,16 +28,14 @@ class _LoginScreenState extends State<LoginScreen> {
         print('Login successful');
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const ProductsScreen()),
+          MaterialPageRoute(builder: (context) =>  ProductsScreen()),
         );
       } else {
-        // Showing a snackbar instead of print statement
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Login failed')),
         );
       }
     } else {
-      // Showing a snackbar instead of print statement
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter both username and password')),
       );
