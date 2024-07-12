@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:prod_tracker/auth/model/user_model.dart';
 import 'package:prod_tracker/auth/provider/user_provider.dart';
-import 'package:prod_tracker/ui/product_screen.dart';
+import 'package:prod_tracker/peoduct/ui/product_screen.dart';
 import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {

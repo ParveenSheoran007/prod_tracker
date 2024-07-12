@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:prod_tracker/auth/provider/user_provider.dart';
-import 'package:prod_tracker/provider/product_provider.dart';
+import 'package:prod_tracker/peoduct/provider/product_provider.dart';
+import 'package:prod_tracker/peoduct/ui/product_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:prod_tracker/auth/ui/login_screen.dart';
 
@@ -25,7 +26,7 @@ class MyApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
           useMaterial3: true,
         ),
-        home:  LoginScreen(),
+        home:  ProductsScreen(),
       ),
     );
   }
